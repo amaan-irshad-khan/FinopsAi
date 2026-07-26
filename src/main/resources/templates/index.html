@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FinOps AI</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/">FinOps AI</a>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/simulation">Simulation</a>
+    </nav>
+</header>
+
+<main class="shell">
+    <section class="intro-band">
+        <div>
+            <p class="eyebrow">Cloud cost optimization</p>
+            <h1>Upload a utilization report and find waste fast.</h1>
+            <p class="lead">Analyze cloud resources, generate right-sizing recommendations, and estimate monthly savings without connecting to real AWS billing APIs.</p>
+        </div>
+        <form class="upload-panel" action="/upload" method="post" enctype="multipart/form-data">
+            <h2>CSV Upload</h2>
+            <label for="file">Cloud utilization report</label>
+            <input id="file" name="file" type="file" accept=".csv" required>
+            <button type="submit">Analyze Report</button>
+            <p class="hint">Required columns: Service, MonthlyCost, CPUUsage</p>
+            <p class="success" th:if="${success}" th:text="${success}"></p>
+            <p class="error" th:if="${error}" th:text="${error}"></p>
+        </form>
+    </section>
+
+    <section class="data-band">
+        <h2>Sample CSV</h2>
+        <pre>Service,MonthlyCost,CPUUsage
+EC2-t3.medium,50,12
+RDS-db.t3.medium,40,18
+S3,8,0
+EC2-m5.large,120,85
+Lambda,15,45</pre>
+    </section>
+</main>
+</body>
+</html>

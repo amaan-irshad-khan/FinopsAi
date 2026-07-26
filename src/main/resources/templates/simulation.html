@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Simulation - FinOps AI</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/">FinOps AI</a>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/simulation">Simulation</a>
+    </nav>
+</header>
+
+<main class="shell">
+    <section class="page-heading">
+        <div>
+            <p class="eyebrow">What-if planning</p>
+            <h1>Simulation</h1>
+        </div>
+    </section>
+
+    <section class="split-layout">
+        <form class="panel form-panel" action="/simulation" method="post">
+            <h2>Run Scenario</h2>
+            <label for="scenario">Scenario name</label>
+            <select id="scenario" name="scenario" required>
+                <option value="Lambda Migration">Lambda Migration</option>
+                <option value="Reserved Instances">Reserved Instances</option>
+                <option value="S3 Storage Optimization">S3 Storage Optimization</option>
+                <option value="General Right-Sizing">General Right-Sizing</option>
+            </select>
+            <button type="submit">Run Simulation</button>
+        </form>
+
+        <article class="panel result-panel" th:if="${simulationResult}">
+            <h2>Latest Result</h2>
+            <dl>
+                <div>
+                    <dt>Scenario</dt>
+                    <dd th:text="${simulationResult.scenario()}">Lambda Migration</dd>
+                </div>
+                <div>
+                    <dt>Current Cost</dt>
+                    <dd th:text="${'$' + simulationResult.currentCost()}">$0</dd>
+                </div>
+                <div>
+                    <dt>Projected Cost</dt>
+                    <dd th:text="${'$' + simulationResult.newCost()}">$0</dd>
+                </div>
+                <div>
+                    <dt>Savings</dt>
+                    <dd th:text="${'$' + simulationResult.saving()}">$0</dd>
+                </div>
+            </dl>
+        </article>
+    </section>
+
+    <section class="panel">
+        <h2>Simulation History</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Scenario</th>
+                <th>Current Cost</th>
+                <th>Projected Cost</th>
+                <th>Savings</th>
+                <th>Created</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="simulation : ${simulations}">
+                <td th:text="${simulation.scenarioName}">Scenario</td>
+                <td th:text="${'$' + simulation.currentCost}">$0</td>
+                <td th:text="${'$' + simulation.projectedCost}">$0</td>
+                <td th:text="${'$' + simulation.savings}">$0</td>
+                <td th:text="${#temporals.format(simulation.createdAt, 'dd MMM yyyy HH:mm')}">date</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(simulations)}">
+                <td colspan="5">Run a scenario after uploading CSV data.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,6 @@
+Service,MonthlyCost,CPUUsage
+EC2-t3.medium,50,12
+RDS-db.t3.medium,40,18
+S3,8,0
+EC2-m5.large,120,85
+Lambda,15,45

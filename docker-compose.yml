@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: finopsai
+      POSTGRES_USER: finops
+      POSTGRES_PASSWORD: finops
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/finopsai
+      DATABASE_USERNAME: finops
+      DATABASE_PASSWORD: finops
+      DATABASE_DRIVER: org.postgresql.Driver
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres-data:
