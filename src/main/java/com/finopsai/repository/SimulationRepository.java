@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface SimulationRepository extends JpaRepository<Simulation, Long> {
 
-    List<Simulation> findTop10ByOrderByCreatedAtDesc();
+    List<Simulation> findTop10ByOwnerUsernameOrderByCreatedAtDesc(String username);
 }

@@ -1,90 +1,23 @@
 <!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Simulation - FinOps AI</title>
-    <link rel="stylesheet" href="/css/app.css">
-</head>
-<body>
-<header class="topbar">
-    <a class="brand" href="/">FinOps AI</a>
-    <nav>
-        <a href="/dashboard">Dashboard</a>
-        <a href="/simulation">Simulation</a>
-    </nav>
-</header>
-
-<main class="shell">
-    <section class="page-heading">
-        <div>
-            <p class="eyebrow">What-if planning</p>
-            <h1>Simulation</h1>
-        </div>
-    </section>
-
-    <section class="split-layout">
-        <form class="panel form-panel" action="/simulation" method="post">
-            <h2>Run Scenario</h2>
-            <label for="scenario">Scenario name</label>
-            <select id="scenario" name="scenario" required>
-                <option value="Lambda Migration">Lambda Migration</option>
-                <option value="Reserved Instances">Reserved Instances</option>
-                <option value="S3 Storage Optimization">S3 Storage Optimization</option>
-                <option value="General Right-Sizing">General Right-Sizing</option>
-            </select>
-            <button type="submit">Run Simulation</button>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Planning - FinOps AI</title><link rel="stylesheet" href="/css/app.css"></head>
+<body class="app-page">
+<div th:replace="fragments :: app-header"></div>
+<main class="app-shell">
+    <section class="page-heading"><div><p class="eyebrow">What-if planning</p><h1>Model your next move</h1><p class="page-subtitle">Compare a future-state cost estimate before changing your cloud environment.</p></div><a class="secondary-action" href="/dashboard">Back to overview</a></section>
+    <section class="planning-grid">
+        <form class="panel scenario-form" th:action="@{/simulation}" method="post">
+            <p class="panel-kicker">New scenario</p><h2>Choose an optimization approach</h2><p>We apply a rule-based estimate to your latest uploaded report.</p>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <label for="scenario">Scenario</label>
+            <select id="scenario" name="scenario" required><option value="Lambda Migration">Lambda migration</option><option value="Reserved Instances">Reserved instances</option><option value="S3 Storage Optimization">Storage optimization</option><option value="General Right-Sizing">General right-sizing</option></select>
+            <div class="scenario-details"><span>Model assumptions</span><p>Uses all resources from your uploaded reports. Results are directional estimates, not provider quotes.</p></div>
+            <button type="submit">Run scenario <span aria-hidden="true">&#8594;</span></button>
         </form>
-
-        <article class="panel result-panel" th:if="${simulationResult}">
-            <h2>Latest Result</h2>
-            <dl>
-                <div>
-                    <dt>Scenario</dt>
-                    <dd th:text="${simulationResult.scenario()}">Lambda Migration</dd>
-                </div>
-                <div>
-                    <dt>Current Cost</dt>
-                    <dd th:text="${'$' + simulationResult.currentCost()}">$0</dd>
-                </div>
-                <div>
-                    <dt>Projected Cost</dt>
-                    <dd th:text="${'$' + simulationResult.newCost()}">$0</dd>
-                </div>
-                <div>
-                    <dt>Savings</dt>
-                    <dd th:text="${'$' + simulationResult.saving()}">$0</dd>
-                </div>
-            </dl>
-        </article>
+        <article class="panel result-panel" th:if="${simulationResult}"><p class="panel-kicker">Latest estimate</p><h2 th:text="${simulationResult.scenario()}">Scenario</h2><div class="result-highlight"><span>Projected monthly savings</span><strong th:text="${'$' + simulationResult.saving()}">$0</strong></div><dl><div><dt>Current cost</dt><dd th:text="${'$' + simulationResult.currentCost()}">$0</dd></div><div><dt>Projected cost</dt><dd th:text="${'$' + simulationResult.newCost()}">$0</dd></div></dl></article>
+        <article class="panel result-panel placeholder-result" th:unless="${simulationResult}"><p class="panel-kicker">Ready when you are</p><h2>Your estimate will appear here.</h2><p>Choose a scenario to calculate the potential impact across the resources in your report.</p><div class="placeholder-metric"><span>Projected savings</span><strong>$ --</strong></div></article>
     </section>
-
-    <section class="panel">
-        <h2>Simulation History</h2>
-        <table>
-            <thead>
-            <tr>
-                <th>Scenario</th>
-                <th>Current Cost</th>
-                <th>Projected Cost</th>
-                <th>Savings</th>
-                <th>Created</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="simulation : ${simulations}">
-                <td th:text="${simulation.scenarioName}">Scenario</td>
-                <td th:text="${'$' + simulation.currentCost}">$0</td>
-                <td th:text="${'$' + simulation.projectedCost}">$0</td>
-                <td th:text="${'$' + simulation.savings}">$0</td>
-                <td th:text="${#temporals.format(simulation.createdAt, 'dd MMM yyyy HH:mm')}">date</td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(simulations)}">
-                <td colspan="5">Run a scenario after uploading CSV data.</td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
+    <section class="panel history-panel"><div class="panel-heading"><div><p class="panel-kicker">Decision log</p><h2>Scenario history</h2></div><span class="table-count">Saved estimates</span></div><div class="table-scroll"><table><thead><tr><th>Scenario</th><th>Current cost</th><th>Projected cost</th><th>Savings</th><th>Created</th></tr></thead><tbody><tr th:each="simulation : ${simulations}"><td><strong th:text="${simulation.scenarioName}">Scenario</strong></td><td th:text="${'$' + simulation.currentCost}">$0</td><td th:text="${'$' + simulation.projectedCost}">$0</td><td class="savings-value" th:text="${'$' + simulation.savings}">$0</td><td th:text="${#temporals.format(simulation.createdAt, 'dd MMM yyyy, HH:mm')}">date</td></tr><tr th:if="${#lists.isEmpty(simulations)}"><td colspan="5" class="empty-table">No scenarios yet. Run one to build your decision history.</td></tr></tbody></table></div></section>
 </main>
-</body>
-</html>
+<div th:replace="fragments :: site-footer"></div>
+</body></html>

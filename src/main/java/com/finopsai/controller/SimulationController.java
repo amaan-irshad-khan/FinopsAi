@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.security.Principal;
 
 @Controller
 public class SimulationController {
@@ -23,21 +24,21 @@ public class SimulationController {
     }
 
     @GetMapping("/simulation")
-    public String simulation(Model model) {
-        model.addAttribute("simulations", simulationService.recentSimulations());
+    public String simulation(Model model, Principal principal) {
+        model.addAttribute("simulations", simulationService.recentSimulations(principal.getName()));
         return "simulation";
     }
 
     @PostMapping("/simulation")
-    public String runSimulation(@RequestParam String scenario, RedirectAttributes redirectAttributes) {
-        SimulationResponse response = simulationService.simulate(scenario);
+    public String runSimulation(@RequestParam String scenario, RedirectAttributes redirectAttributes, Principal principal) {
+        SimulationResponse response = simulationService.simulate(scenario, principal.getName());
         redirectAttributes.addFlashAttribute("simulationResult", response);
         return "redirect:/simulation";
     }
 
     @PostMapping("/api/simulation")
     @ResponseBody
-    public SimulationResponse simulateApi(@Valid @RequestBody SimulationRequest request) {
-        return simulationService.simulate(request.scenario());
+    public SimulationResponse simulateApi(@Valid @RequestBody SimulationRequest request, Principal principal) {
+        return simulationService.simulate(request.scenario(), principal.getName());
     }
 }

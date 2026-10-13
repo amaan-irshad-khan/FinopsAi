@@ -1,86 +1,79 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dashboard - FinOps AI</title>
+    <title>Overview - FinOps AI</title>
     <link rel="stylesheet" href="/css/app.css">
 </head>
-<body>
-<header class="topbar">
-    <a class="brand" href="/">FinOps AI</a>
-    <nav>
-        <a href="/dashboard">Dashboard</a>
-        <a href="/simulation">Simulation</a>
-    </nav>
-</header>
+<body class="app-page">
+<div th:replace="fragments :: app-header"></div>
 
-<main class="shell">
-    <section class="page-heading">
+<main class="app-shell">
+    <section class="page-heading dashboard-heading">
         <div>
-            <p class="eyebrow">Cost analysis</p>
-            <h1>Dashboard</h1>
+            <p class="eyebrow">Workspace overview</p>
+            <h1>Cost command center</h1>
+            <p class="page-subtitle" th:if="${upload}">Latest report: <strong th:text="${upload.filename}">report.csv</strong> <span>&middot;</span> <span th:text="${#temporals.format(upload.uploadedAt, 'dd MMM yyyy, HH:mm')}">date</span></p>
+            <p class="page-subtitle" th:unless="${upload}">Upload a report to start your first analysis.</p>
         </div>
-        <a class="secondary-action" href="/">Upload New CSV</a>
+        <a class="primary-action" href="/">Upload report <span aria-hidden="true">&#8594;</span></a>
     </section>
 
-    <p class="empty-state" th:if="${emptyMessage}" th:text="${emptyMessage}"></p>
-    <p class="success" th:if="${success}" th:text="${success}"></p>
+    <section class="empty-workspace" th:if="${emptyMessage}">
+        <span class="empty-icon">&#8593;</span>
+        <div><h2>Your workspace is ready.</h2><p th:text="${emptyMessage}">Upload a CSV report to generate your first dashboard.</p></div>
+        <a class="primary-action" href="/">Upload a report</a>
+    </section>
 
     <section class="metric-grid" th:if="${analysis}">
-        <article class="metric-card">
-            <span>Total Cost</span>
-            <strong th:text="${'$' + analysis.currentCost()}">$0</strong>
+        <article class="metric-card"><span>Monthly cloud cost</span><strong th:text="${'$' + analysis.currentCost()}">$0</strong><small>From latest uploaded report</small></article>
+        <article class="metric-card savings-card"><span>Identified savings</span><strong th:text="${'$' + analysis.estimatedSavings()}">$0</strong><small>Estimated monthly opportunity</small></article>
+        <article class="metric-card"><span>Optimized run rate</span><strong th:text="${'$' + analysis.optimizedCost()}">$0</strong><small>After recommended changes</small></article>
+        <article class="metric-card"><span>Optimization score</span><strong th:text="${analysis.optimizationScore() + '%'}">0%</strong><div class="score-track"><i th:style="${'width:' + analysis.optimizationScore() + '%'}"></i></div></article>
+    </section>
+
+    <section class="insight-grid" th:if="${analysis}">
+        <article class="panel opportunity-panel">
+            <div class="panel-heading"><div><p class="panel-kicker">Priority queue</p><h2>Where to focus next</h2></div><span class="subtle-badge">Live report</span></div>
+            <div class="priority-item"><span class="priority-number">01</span><div><strong>Underutilized resources</strong><p>Review resources using less than 20% CPU.</p></div><span class="priority-tag warning-tag">High impact</span></div>
+            <div class="priority-item"><span class="priority-number">02</span><div><strong>Optimization score</strong><p>Your report has a <span th:text="${analysis.optimizationScore() + '%'}">0%</span> savings opportunity.</p></div><span class="priority-tag">Review</span></div>
+            <div class="priority-item placeholder-item"><span class="priority-number">03</span><div><strong>Budget coverage</strong><p>Set budgets to track spend against targets.</p></div><span class="priority-tag muted-tag">Coming soon</span></div>
         </article>
-        <article class="metric-card">
-            <span>Estimated Savings</span>
-            <strong th:text="${'$' + analysis.estimatedSavings()}">$0</strong>
-        </article>
-        <article class="metric-card">
-            <span>Optimized Cost</span>
-            <strong th:text="${'$' + analysis.optimizedCost()}">$0</strong>
-        </article>
-        <article class="metric-card">
-            <span>Optimization Score</span>
-            <strong th:text="${analysis.optimizationScore() + '%'}">0%</strong>
+        <article class="panel chart-panel">
+            <div class="panel-heading"><div><p class="panel-kicker">Potential savings</p><h2>Opportunity mix</h2></div><span class="chart-caption">Placeholder split</span></div>
+            <div class="bar-chart">
+                <div th:each="service : ${serviceSpend}"><span th:text="${service.service}">Compute</span><i><b th:style="${'width:' + service.percent + '%'}"></b></i><em th:text="${'$' + service.cost}">$0</em></div>
+            </div>
+            <p class="chart-footnote">Spend distribution from the currently selected report.</p>
         </article>
     </section>
 
-    <section class="split-layout" th:if="${analysis}">
-        <div class="panel">
-            <h2>Resource Analysis</h2>
-            <table>
-                <thead>
-                <tr>
-                    <th>Service</th>
-                    <th>Monthly Cost</th>
-                    <th>CPU Usage</th>
-                    <th>Status</th>
-                    <th>Recommendation</th>
-                    <th>Savings</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="resource : ${resources}">
-                    <td th:text="${resource.serviceName}">EC2</td>
+    <section class="content-grid" th:if="${analysis}">
+        <div class="panel table-panel">
+            <div class="panel-heading"><div><p class="panel-kicker">Resource inventory</p><h2>Recommended actions</h2></div><span class="table-count" th:text="${#lists.size(resources) + ' resources'}">0 resources</span></div>
+            <div class="table-scroll"><table>
+                <thead><tr><th>Service</th><th>Monthly cost</th><th>CPU usage</th><th>Status</th><th>Recommendation</th><th>Est. savings</th></tr></thead>
+                <tbody><tr th:each="resource : ${resources}">
+                    <td><strong th:text="${resource.serviceName}">EC2</strong></td>
                     <td th:text="${'$' + resource.monthlyCost}">$0</td>
-                    <td th:text="${resource.cpuUsage + '%'}">0%</td>
+                    <td><span class="usage-value" th:text="${resource.cpuUsage + '%'}">0%</span></td>
                     <td><span class="status" th:classappend="${resource.status}" th:text="${resource.status}">HEALTHY</span></td>
-                    <td th:text="${resource.recommendation.recommendation}">No action required</td>
-                    <td th:text="${'$' + resource.recommendation.estimatedSavings}">$0</td>
-                </tr>
-                </tbody>
-            </table>
+                    <td class="recommendation-copy"><span th:text="${resource.recommendation.recommendation}">No action required</span><form class="recommendation-form" th:action="@{/api/recommendations/manage/{id}(id=${resource.recommendation.id})}" method="post"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><input type="hidden" name="uploadId" th:value="${upload.id}"><select name="state"><option th:each="state : ${T(com.finopsai.model.RecommendationState).values()}" th:value="${state}" th:text="${state}" th:selected="${state == resource.recommendation.state}">OPEN</option></select><button class="table-button" type="submit">Save</button></form></td>
+                    <td class="savings-value" th:text="${'$' + resource.recommendation.estimatedSavings}">$0</td>
+                </tr></tbody>
+            </table></div>
         </div>
-
-        <aside class="panel compact">
-            <h2>Recent Uploads</h2>
-            <a class="upload-link" th:each="item : ${uploads}" th:href="@{/dashboard/{id}(id=${item.id})}">
-                <span th:text="${item.filename}">report.csv</span>
-                <small th:text="${#temporals.format(item.uploadedAt, 'dd MMM yyyy HH:mm')}">date</small>
-            </a>
+        <aside class="side-stack">
+            <section class="panel compact">
+                <div class="panel-heading"><div><p class="panel-kicker">Report history</p><h2>Recent uploads</h2></div></div>
+                <a class="upload-link" th:each="item : ${uploads}" th:href="@{/dashboard/{id}(id=${item.id})}"><span th:text="${item.filename}">report.csv</span><small th:text="${#temporals.format(item.uploadedAt, 'dd MMM, HH:mm')}">date</small></a>
+            </section>
+            <section class="panel next-step"><p class="panel-kicker">What-if planning</p><h2>Test a cost scenario</h2><p>Estimate savings from reservations, storage changes, or serverless migration.</p><a class="text-action" href="/simulation">Open planning <span aria-hidden="true">&#8594;</span></a></section>
+            <section class="panel compact" th:if="${#lists.size(uploads) > 1}"><p class="panel-kicker">Cost movement</p><h2>Compare reports</h2><form class="compare-form" action="/compare" method="get"><label>Baseline<select name="baselineId"><option th:each="item : ${uploads}" th:value="${item.id}" th:text="${item.filename}">Report</option></select></label><label>Current<select name="currentId"><option th:each="item : ${uploads}" th:value="${item.id}" th:text="${item.filename}">Report</option></select></label><button type="submit">Compare</button></form></section>
         </aside>
     </section>
 </main>
+<div th:replace="fragments :: site-footer"></div>
 </body>
 </html>

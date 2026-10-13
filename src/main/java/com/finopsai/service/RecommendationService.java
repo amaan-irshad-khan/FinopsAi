@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import com.finopsai.model.RecommendationState;
+import com.finopsai.exception.ResourceNotFoundException;
 
 @Service
 public class RecommendationService {
@@ -38,14 +40,24 @@ public class RecommendationService {
     }
 
     @Transactional(readOnly = true)
-    public List<RecommendationResponse> recommendationsForUpload(Long uploadId) {
-        return recommendationRepository.findByResourceUploadId(uploadId).stream()
+    public List<RecommendationResponse> recommendationsForUpload(Long uploadId, String username) {
+        return recommendationRepository.findByResourceUploadIdAndResourceUploadOwnerUsername(uploadId, username).stream()
                 .map(recommendation -> new RecommendationResponse(
+                        recommendation.getId(),
                         recommendation.getResource().getServiceName(),
                         recommendation.getRecommendation(),
-                        recommendation.getEstimatedSavings()
+                        recommendation.getEstimatedSavings(),
+                        recommendation.getState()
                 ))
                 .toList();
+    }
+
+    @Transactional
+    public RecommendationState updateState(Long recommendationId, RecommendationState state, String username) {
+        Recommendation recommendation = recommendationRepository.findByIdAndResourceUploadOwnerUsername(recommendationId, username)
+                .orElseThrow(() -> new ResourceNotFoundException("Recommendation not found."));
+        recommendation.setState(state);
+        return recommendation.getState();
     }
 
     private String recommendationForUnderutilized(String serviceName) {

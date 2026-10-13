@@ -7,5 +7,7 @@ import java.util.List;
 
 public interface RecommendationRepository extends JpaRepository<Recommendation, Long> {
 
-    List<Recommendation> findByResourceUploadId(Long uploadId);
+    List<Recommendation> findByResourceUploadIdAndResourceUploadOwnerUsername(Long uploadId, String username);
+
+    java.util.Optional<Recommendation> findByIdAndResourceUploadOwnerUsername(Long id, String username);
 }

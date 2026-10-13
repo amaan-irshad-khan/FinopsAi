@@ -6,6 +6,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,15 +36,20 @@ public class Simulation {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private FinOpsUser owner;
+
     protected Simulation() {
     }
 
-    public Simulation(String scenarioName, BigDecimal currentCost, BigDecimal projectedCost, BigDecimal savings) {
+    public Simulation(String scenarioName, BigDecimal currentCost, BigDecimal projectedCost, BigDecimal savings, FinOpsUser owner) {
         this.scenarioName = scenarioName;
         this.currentCost = currentCost;
         this.projectedCost = projectedCost;
         this.savings = savings;
         this.createdAt = LocalDateTime.now();
+        this.owner = owner;
     }
 
     public Long getId() {
@@ -66,5 +74,9 @@ public class Simulation {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public FinOpsUser getOwner() {
+        return owner;
     }
 }

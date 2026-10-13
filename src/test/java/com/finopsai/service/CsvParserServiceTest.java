@@ -2,19 +2,28 @@ package com.finopsai.service;
 
 import com.finopsai.exception.InvalidCsvException;
 import com.finopsai.model.Upload;
+import com.finopsai.model.FinOpsUser;
+import com.finopsai.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
+@ActiveProfiles("dev")
 class CsvParserServiceTest {
 
     @Autowired
     private CsvParserService csvParserService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    private static final String USERNAME = "csv-test-user";
 
     @Test
     void parsesAndStoresValidCsv() {
@@ -30,7 +39,8 @@ class CsvParserServiceTest {
                         """.getBytes()
         );
 
-        Upload upload = csvParserService.parseAndSave(file);
+        ensureUser();
+        Upload upload = csvParserService.parseAndSave(file, USERNAME);
 
         assertThat(upload.getId()).isNotNull();
         assertThat(upload.getResources()).hasSize(3);
@@ -49,8 +59,14 @@ class CsvParserServiceTest {
                         """.getBytes()
         );
 
-        assertThatThrownBy(() -> csvParserService.parseAndSave(file))
+        assertThatThrownBy(() -> csvParserService.parseAndSave(file, USERNAME))
                 .isInstanceOf(InvalidCsvException.class)
                 .hasMessageContaining("CSV header");
+    }
+
+    private void ensureUser() {
+        if (!userRepository.existsByUsername(USERNAME)) {
+            userRepository.save(new FinOpsUser(USERNAME, "not-used-in-test", "VIEWER"));
+        }
     }
 }

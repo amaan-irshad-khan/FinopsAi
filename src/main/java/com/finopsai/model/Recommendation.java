@@ -9,6 +9,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import java.time.LocalDateTime;
 
 import java.math.BigDecimal;
 
@@ -29,6 +32,13 @@ public class Recommendation {
 
     @Column(name = "estimated_savings", nullable = false, precision = 12, scale = 2)
     private BigDecimal estimatedSavings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private RecommendationState state = RecommendationState.OPEN;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     protected Recommendation() {
     }
@@ -56,5 +66,14 @@ public class Recommendation {
 
     public BigDecimal getEstimatedSavings() {
         return estimatedSavings;
+    }
+
+    public RecommendationState getState() {
+        return state;
+    }
+
+    public void setState(RecommendationState state) {
+        this.state = state;
+        this.updatedAt = LocalDateTime.now();
     }
 }

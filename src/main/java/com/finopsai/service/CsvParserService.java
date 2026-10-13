@@ -23,19 +23,22 @@ public class CsvParserService {
     private final CostAnalysisService costAnalysisService;
     private final RecommendationService recommendationService;
     private final UploadRepository uploadRepository;
+    private final CurrentUserService currentUserService;
 
     public CsvParserService(
             CostAnalysisService costAnalysisService,
             RecommendationService recommendationService,
-            UploadRepository uploadRepository
+            UploadRepository uploadRepository,
+            CurrentUserService currentUserService
     ) {
         this.costAnalysisService = costAnalysisService;
         this.recommendationService = recommendationService;
         this.uploadRepository = uploadRepository;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional
-    public Upload parseAndSave(MultipartFile file) {
+    public Upload parseAndSave(MultipartFile file, String username) {
         if (file == null || file.isEmpty()) {
             throw new InvalidCsvException("Please upload a non-empty CSV file.");
         }
@@ -44,7 +47,7 @@ public class CsvParserService {
         }
 
         List<ResourceUsage> resources = parse(file);
-        Upload upload = new Upload(file.getOriginalFilename());
+        Upload upload = new Upload(file.getOriginalFilename(), currentUserService.requireUser(username));
         resources.forEach(upload::addResource);
         return uploadRepository.save(upload);
     }

@@ -13,15 +13,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.security.Principal;
 
 @Controller
 @RequestMapping
 public class UploadController {
 
     private final CsvParserService csvParserService;
+    private final com.finopsai.service.AwsCostExplorerService awsCostExplorerService;
 
-    public UploadController(CsvParserService csvParserService) {
+    public UploadController(CsvParserService csvParserService, com.finopsai.service.AwsCostExplorerService awsCostExplorerService) {
         this.csvParserService = csvParserService;
+        this.awsCostExplorerService = awsCostExplorerService;
     }
 
     @GetMapping("/")
@@ -30,16 +33,23 @@ public class UploadController {
     }
 
     @PostMapping("/upload")
-    public String uploadPage(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {
-        Upload upload = csvParserService.parseAndSave(file);
+    public String uploadPage(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes, Principal principal) {
+        Upload upload = csvParserService.parseAndSave(file, principal.getName());
         redirectAttributes.addFlashAttribute("success", "Processed " + upload.getResources().size() + " resource records.");
         return "redirect:/dashboard/" + upload.getId();
     }
 
     @PostMapping(value = "/api/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
-    public UploadResponse uploadApi(@RequestParam("file") MultipartFile file) {
-        Upload upload = csvParserService.parseAndSave(file);
+    public UploadResponse uploadApi(@RequestParam("file") MultipartFile file, Principal principal) {
+        Upload upload = csvParserService.parseAndSave(file, principal.getName());
+        return new UploadResponse(upload.getId(), upload.getResources().size());
+    }
+
+    @PostMapping("/api/cloud/aws/import")
+    @ResponseBody
+    public UploadResponse importAws(Principal principal) {
+        Upload upload = awsCostExplorerService.importCurrentMonth(principal.getName());
         return new UploadResponse(upload.getId(), upload.getResources().size());
     }
 }

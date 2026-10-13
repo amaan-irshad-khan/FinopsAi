@@ -1,40 +1,73 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>FinOps AI</title>
+    <title>FinOps AI - Cloud Cost Intelligence</title>
     <link rel="stylesheet" href="/css/app.css">
 </head>
 <body>
-<header class="topbar">
-    <a class="brand" href="/">FinOps AI</a>
-    <nav>
-        <a href="/dashboard">Dashboard</a>
-        <a href="/simulation">Simulation</a>
-    </nav>
-</header>
+<div th:replace="fragments :: public-header"></div>
 
-<main class="shell">
-    <section class="intro-band">
-        <div>
-            <p class="eyebrow">Cloud cost optimization</p>
-            <h1>Upload a utilization report and find waste fast.</h1>
-            <p class="lead">Analyze cloud resources, generate right-sizing recommendations, and estimate monthly savings without connecting to real AWS billing APIs.</p>
+<main>
+    <section class="hero-band">
+        <div class="hero-copy">
+            <p class="eyebrow">Cloud cost intelligence</p>
+            <h1>Make every cloud dollar easier to explain.</h1>
+            <p class="lead">Upload a utilization report to surface idle resources, prioritize savings, and test cost scenarios in minutes.</p>
+            <div class="hero-actions">
+                <a class="primary-action" href="#upload-report">Analyze a report <span aria-hidden="true">&#8594;</span></a>
+                <a class="text-action" href="#how-it-works">See how it works</a>
+            </div>
+            <div class="trust-row">
+                <span><b>CSV-first</b> No cloud credentials needed</span>
+                <span><b>Rule-based</b> Explainable recommendations</span>
+            </div>
         </div>
-        <form class="upload-panel" action="/upload" method="post" enctype="multipart/form-data">
-            <h2>CSV Upload</h2>
-            <label for="file">Cloud utilization report</label>
-            <input id="file" name="file" type="file" accept=".csv" required>
-            <button type="submit">Analyze Report</button>
-            <p class="hint">Required columns: Service, MonthlyCost, CPUUsage</p>
+        <aside class="hero-preview" aria-label="Example optimization summary">
+            <div class="preview-topline"><span>Optimization overview</span><span class="preview-live">Demo data</span></div>
+            <div class="preview-total"><span>Potential monthly savings</span><strong>$1,842</strong><small>Across 14 opportunities</small></div>
+            <div class="mini-bars">
+                <div><span>Compute</span><i><b style="width: 78%"></b></i><em>$1,080</em></div>
+                <div><span>Storage</span><i><b style="width: 44%"></b></i><em>$460</em></div>
+                <div><span>Database</span><i><b style="width: 27%"></b></i><em>$302</em></div>
+            </div>
+            <div class="preview-note"><span class="connection-dot"></span> Updated from latest report</div>
+        </aside>
+    </section>
+
+    <section id="upload-report" class="workspace-band">
+        <div class="section-heading">
+            <p class="eyebrow">Start analysis</p>
+            <h2>Upload your utilization report</h2>
+            <p>Use the sample format below. Your report is processed into resource-level recommendations.</p>
+        </div>
+        <form class="upload-panel elevated" th:action="@{/upload}" method="post" enctype="multipart/form-data">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <div class="file-drop-zone">
+                <span class="drop-icon">&#8593;</span>
+                <label for="file">Choose a CSV report</label>
+                <p>Service, monthly cost, and CPU utilization</p>
+                <input id="file" name="file" type="file" accept=".csv" required>
+            </div>
+            <button type="submit">Analyze report <span aria-hidden="true">&#8594;</span></button>
+            <p class="hint">Maximum file size: 10 MB. Only CSV files are accepted.</p>
             <p class="success" th:if="${success}" th:text="${success}"></p>
             <p class="error" th:if="${error}" th:text="${error}"></p>
         </form>
     </section>
 
-    <section class="data-band">
-        <h2>Sample CSV</h2>
+    <section id="how-it-works" class="process-band">
+        <div class="section-heading"><p class="eyebrow">A simple workflow</p><h2>From report to decision</h2></div>
+        <div class="process-grid">
+            <article><span>01</span><h3>Upload</h3><p>Bring in a CSV export with service, monthly cost, and CPU utilization.</p></article>
+            <article><span>02</span><h3>Review</h3><p>See underused and overloaded resources, with an estimated cost impact.</p></article>
+            <article><span>03</span><h3>Plan</h3><p>Run a what-if scenario before taking action in your cloud account.</p></article>
+        </div>
+    </section>
+
+    <section id="sample-data" class="sample-band">
+        <div><p class="eyebrow">Need an example?</p><h2>Start with the sample report format.</h2><p>Copy this structure into a CSV, or use the project sample file.</p></div>
         <pre>Service,MonthlyCost,CPUUsage
 EC2-t3.medium,50,12
 RDS-db.t3.medium,40,18
@@ -43,5 +76,7 @@ EC2-m5.large,120,85
 Lambda,15,45</pre>
     </section>
 </main>
+
+<div th:replace="fragments :: site-footer"></div>
 </body>
 </html>

@@ -17,29 +17,32 @@ public class SimulationService {
     private final ResourceUsageRepository resourceUsageRepository;
     private final SimulationRepository simulationRepository;
     private final CostAnalysisService costAnalysisService;
+    private final CurrentUserService currentUserService;
 
     public SimulationService(
             ResourceUsageRepository resourceUsageRepository,
             SimulationRepository simulationRepository,
-            CostAnalysisService costAnalysisService
+            CostAnalysisService costAnalysisService,
+            CurrentUserService currentUserService
     ) {
         this.resourceUsageRepository = resourceUsageRepository;
         this.simulationRepository = simulationRepository;
         this.costAnalysisService = costAnalysisService;
+        this.currentUserService = currentUserService;
     }
 
-    public SimulationResponse simulate(String scenario) {
-        List<ResourceUsage> resources = resourceUsageRepository.findAll();
+    public SimulationResponse simulate(String scenario, String username) {
+        List<ResourceUsage> resources = resourceUsageRepository.findByUploadOwnerUsername(username);
         BigDecimal currentCost = costAnalysisService.totalCost(resources);
         BigDecimal projectedCost = projectedCost(currentCost, scenario);
         BigDecimal savings = currentCost.subtract(projectedCost).max(BigDecimal.ZERO);
 
-        simulationRepository.save(new Simulation(scenario, currentCost, projectedCost, savings));
+        simulationRepository.save(new Simulation(scenario, currentCost, projectedCost, savings, currentUserService.requireUser(username)));
         return new SimulationResponse(scenario, currentCost, projectedCost, savings);
     }
 
-    public List<Simulation> recentSimulations() {
-        return simulationRepository.findTop10ByOrderByCreatedAtDesc();
+    public List<Simulation> recentSimulations(String username) {
+        return simulationRepository.findTop10ByOwnerUsernameOrderByCreatedAtDesc(username);
     }
 
     private BigDecimal projectedCost(BigDecimal currentCost, String scenario) {

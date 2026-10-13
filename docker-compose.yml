@@ -15,10 +15,13 @@ services:
     depends_on:
       - postgres
     environment:
+      SPRING_PROFILES_ACTIVE: prod
       DATABASE_URL: jdbc:postgresql://postgres:5432/finopsai
       DATABASE_USERNAME: finops
       DATABASE_PASSWORD: finops
       DATABASE_DRIVER: org.postgresql.Driver
+      JWT_SECRET: FinOpsAiDockerSecretKeyForJwtTokenSigning2024
+      JWT_EXPIRATION_MS: 86400000
     ports:
       - "8080:8080"
 
